@@ -1,0 +1,64 @@
+<Window x:Class="DismGui.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="DISM Studio" Width="1160" Height="900" MinWidth="900" MinHeight="720" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
+  <Grid Margin="26,22">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="190"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <DockPanel Margin="0,0,0,18">
+      <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right"><TextBlock x:Name="AdminStatus" Foreground="{StaticResource Muted}" HorizontalAlignment="Right" Margin="0,0,0,8"/><Button x:Name="ElevateButton" Content="Restart as administrator" Click="Elevate_Click" Margin="0"/></StackPanel>
+      <StackPanel><TextBlock Text="DISM Studio" FontSize="29" FontWeight="Bold"/><TextBlock Text="Windows image servicing, without memorizing commands." Foreground="{StaticResource Muted}" Margin="0,4,0,0"/></StackPanel>
+    </DockPanel>
+    <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+      <TabItem Header="Driver injection">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="InjectionForm" Margin="0,16,8,0">
+          <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="01  /  Choose your Windows image" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Work on a copy of your extracted install media. Select sources\install.wim, or sources\boot.wim for Windows Setup drivers." Style="{StaticResource Hint}"/>
+            <DockPanel><Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseImage_Click" Margin="8,0,0,0"/><Button DockPanel.Dock="Right" Content="Read editions" Click="ReadEditions_Click" Margin="8,0,0,0"/><TextBox x:Name="ImagePath" TextChanged="ImagePath_Changed" ToolTip="Full path to install.wim, boot.wim, or install.esd"/></DockPanel>
+            <TextBlock Text="Select every edition you want to update (Ctrl or Shift for multiple)." Style="{StaticResource Hint}"/>
+            <ListBox x:Name="Editions" SelectionMode="Extended" Height="100" BorderBrush="#CFD9E5" Padding="6"/>
+          </StackPanel></Border>
+          <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="02  /  Add driver folders" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="All INF packages in each folder and its subfolders will be added. Extract ZIP, CAB, MSI, or EXE driver downloads first." Style="{StaticResource Hint}"/>
+            <DockPanel><StackPanel DockPanel.Dock="Right" Margin="12,0,0,0"><Button Content="Add folder…" Click="AddDriver_Click" Margin="0,0,0,8"/><Button Content="Remove" Click="RemoveDriver_Click" Margin="0"/></StackPanel><ListBox x:Name="DriverFolders" Height="90" BorderBrush="#CFD9E5" Padding="6"/></DockPanel>
+          </StackPanel></Border>
+          <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="03  /  Review and apply" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Empty working folder on a local NTFS drive" Style="{StaticResource Hint}"/>
+            <DockPanel><Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseMount_Click" Margin="8,0,0,0"/><TextBox x:Name="MountPath"/></DockPanel>
+            <TextBlock Text="Each selected edition is mounted, updated, then saved. Allow several GB of free space. Earlier editions stay saved if a later edition fails." Style="{StaticResource Hint}"/>
+            <WrapPanel Margin="0,6,0,0"><Button Content="Preview commands" Click="Preview_Click"/><Button Content="Add drivers and save" Style="{StaticResource Primary}" Click="Inject_Click"/></WrapPanel>
+          </StackPanel></Border>
+        </StackPanel></ScrollViewer>
+      </TabItem>
+      <TabItem Header="Image tools">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="ToolsForm" Margin="0,16,8,0">
+          <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="Export an edition to WIM" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Choose an ESD or WIM and read its editions on the Driver injection tab. Select exactly one edition, then export to a new WIM file for servicing. The exported edition becomes index 1." Style="{StaticResource Hint}"/>
+            <DockPanel><Button DockPanel.Dock="Right" Content="Save as…" Click="BrowseExport_Click" Margin="8,0,0,0"/><TextBox x:Name="ExportPath" ToolTip="New destination WIM file"/></DockPanel>
+            <WrapPanel Margin="0,12,0,0"><Button Content="Export selected edition" Style="{StaticResource Primary}" Click="Export_Click"/></WrapPanel>
+          </StackPanel></Border>
+          <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="Split a WIM for FAT32 media" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Uses the WIM selected on Driver injection. Produces install.swm, install2.swm, etc. in a new destination folder, targeting 3,800 MB parts. A single very large file can make a part exceed that size. Copy all parts to the media's sources folder in place of install.wim." Style="{StaticResource Hint}"/>
+            <DockPanel><Button DockPanel.Dock="Right" Content="Browse…" Click="BrowseSplit_Click" Margin="8,0,0,0"/><TextBox x:Name="SplitPath" ToolTip="Empty destination folder for split images"/></DockPanel>
+            <WrapPanel Margin="0,12,0,0"><Button Content="Split WIM" Click="Split_Click"/></WrapPanel>
+          </StackPanel></Border>
+          <Border Style="{StaticResource Card}"><TextBlock Text="This version services extracted installation files. It does not create a bootable ISO or USB drive. Keep your original media as a backup; update boot.wim separately when Windows Setup needs storage or network drivers." TextWrapping="Wrap" Foreground="{StaticResource Muted}"/></Border>
+        </StackPanel></ScrollViewer>
+      </TabItem>
+      <TabItem Header="Mounted images">
+        <StackPanel x:Name="RecoveryForm" Margin="0,16,0,0">
+          <Border Style="{StaticResource Card}"><StackPanel>
+            <TextBlock Text="Inspect and recover mounted images" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Text="Refresh to list all DISM mounts, including mounts created by other tools. Select carefully. Remount can recover a mount with status Needs Remount. Discard permanently removes unsaved changes." Style="{StaticResource Hint}"/>
+            <WrapPanel Margin="0,8,0,12"><Button Content="Refresh mounts" Click="RefreshMounts_Click"/><Button Content="Remount" Click="Remount_Click"/><Button Content="Save and unmount" Click="SaveMount_Click"/><Button Content="Discard and unmount" Click="DiscardMount_Click"/></WrapPanel>
+            <ListBox x:Name="Mounts" Height="230" BorderBrush="#CFD9E5" Padding="8"/>
+          </StackPanel></Border>
+        </StackPanel>
+      </TabItem>
+    </TabControl>
+    <DockPanel Grid.Row="2" Margin="0,12,0,8"><WrapPanel DockPanel.Dock="Right"><Button Content="Open logs" Click="OpenLogs_Click"/><Button x:Name="StopButton" Content="Stop after edition" IsEnabled="False" Click="Stop_Click" Margin="0"/></WrapPanel><TextBlock Text="SESSION LOG" FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource Muted}"/></DockPanel>
+    <TextBox Grid.Row="3" x:Name="LogOutput" IsReadOnly="True" VerticalContentAlignment="Top" Background="#142337" Foreground="#D8E5F4" FontFamily="Cascadia Mono, Consolas" FontSize="12" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" BorderThickness="0" Padding="12"/>
+    <StackPanel Grid.Row="4" Margin="0,10,0,0"><ProgressBar x:Name="Activity" Height="3" IsIndeterminate="False" BorderThickness="0" Foreground="#176CBE"/><TextBlock x:Name="StatusText" Text="Ready. Choose an image to begin." Margin="0,7,0,0" TextWrapping="Wrap"/><TextBlock x:Name="LogPathLabel" FontSize="11" Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/></StackPanel>
+  </Grid>
+</Window>

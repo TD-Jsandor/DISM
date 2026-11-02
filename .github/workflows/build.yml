@@ -1,0 +1,29 @@
+name: Build and check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build desktop app
+        run: dotnet build src/DismGui/DismGui.csproj --configuration Release
+      - name: Check servicing and logging behavior (no real DISM calls)
+        run: dotnet run --project tests/DismGui.Checks --configuration Release
+      - name: Publish framework-dependent Windows app
+        run: dotnet publish src/DismGui/DismGui.csproj --configuration Release --no-restore --self-contained false --output artifacts/DismStudio
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DismStudio-windows
+          path: artifacts/DismStudio/
+          if-no-files-found: error

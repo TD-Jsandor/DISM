@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+.vs/
+.idea/
+artifacts/
+drivers/
+media/
+mount/
+*.user
+*.log
+*.wim
+*.esd
+*.swm
+*.iso
+TestResults/
